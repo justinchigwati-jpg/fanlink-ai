@@ -1,0 +1,375 @@
+import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { CurrencyLangProvider } from './context/CurrencyLangContext';
+import { Header } from './components/Header';
+import { BottomNav } from './components/BottomNav';
+import { FeedView } from './components/FeedView';
+import { StarsView } from './components/StarsView';
+import { MessagesView } from './components/MessagesView';
+import { LiveView } from './components/LiveView';
+import { MonetizationView } from './components/MonetizationView';
+import { AdminView } from './components/AdminView';
+import { ProfileView } from './components/ProfileView';
+import { SettingsView } from './components/SettingsView';
+import { EvolutionDashboardView } from './components/EvolutionDashboardView';
+import { ActivityCenterView } from './components/ActivityCenterView';
+import { PostCommentsModal } from './components/PostCommentsModal';
+import { ShareModal } from './components/ShareModal';
+import { CreatePostModal } from './components/CreatePostModal';
+import { WalletModal } from './components/WalletModal';
+import { AIStudioPanel } from './components/AIStudioPanel';
+import { AuthModal } from './components/AuthModal';
+import { VerificationModal } from './components/VerificationModal';
+import { TermsPrivacyModal } from './components/TermsPrivacyModal';
+import { OfflineIndicator } from './components/OfflineIndicator';
+import { 
+  INITIAL_POSTS, 
+  SEED_CREATORS 
+} from './services/dataService';
+import { Post, Comment, UserProfile, VerificationRequest } from './types';
+import { testFirestoreConnection } from './firebase';
+
+function MainApp() {
+  const { userProfile, isAdmin } = useAuth();
+
+  // Navigation State
+  const [currentTab, setCurrentTab] = useState<string>('feed');
+  const [feedSubTab, setFeedSubTab] = useState<'forYou' | 'following' | 'stars'>('forYou');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [creatorToView, setCreatorToView] = useState<UserProfile | null>(null);
+  const [targetConversationId, setTargetConversationId] = useState<string | null>(null);
+
+  // Core Data State
+  const [posts, setPosts] = useState<Post[]>(() => {
+    const saved = localStorage.getItem('fanlink_posts_v2');
+    return saved ? JSON.parse(saved) : INITIAL_POSTS;
+  });
+  const [creators, setCreators] = useState<UserProfile[]>(() => {
+    const saved = localStorage.getItem('fanlink_creators_v2');
+    return saved ? JSON.parse(saved) : SEED_CREATORS;
+  });
+
+  // Comments per post state
+  const [commentsMap, setCommentsMap] = useState<Record<string, Comment[]>>({
+    post_sarah_01: [
+      {
+        id: 'c_init_1',
+        postId: 'post_sarah_01',
+        authorId: 'demo_fan_101',
+        authorName: 'Thomas Lemoine',
+        authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+        content: 'Tellement fan de ton énergie Sarah ! Le nouveau clip est magnifique 💚',
+        createdAt: new Date(Date.now() - 3600000).toISOString()
+      }
+    ]
+  });
+
+  // Active Modals
+  const [activeCommentsPost, setActiveCommentsPost] = useState<Post | null>(null);
+  const [activeSharePost, setActiveSharePost] = useState<Post | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isWalletOpen, setIsWalletOpen] = useState(false);
+  const [isAIOpen, setIsAIOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isVerificationOpen, setIsVerificationOpen] = useState(false);
+  const [legalModalType, setLegalModalType] = useState<'terms' | 'privacy' | null>(null);
+
+  // Initial connection test
+  useEffect(() => {
+    testFirestoreConnection().catch(console.warn);
+  }, []);
+
+  // Save posts whenever updated
+  useEffect(() => {
+    localStorage.setItem('fanlink_posts_v2', JSON.stringify(posts));
+  }, [posts]);
+
+  // Handlers
+  const handleLikePost = (postId: string) => {
+    setPosts(prev => prev.map(p => {
+      if (p.id === postId) {
+        const isLiked = !p.likedByCurrentUser;
+        return {
+          ...p,
+          likedByCurrentUser: isLiked,
+          likesCount: isLiked ? p.likesCount + 1 : Math.max(0, p.likesCount - 1)
+        };
+      }
+      return p;
+    }));
+  };
+
+  const handleAddComment = (postId: string, text: string) => {
+    const newComment: Comment = {
+      id: `c_${Date.now()}`,
+      postId,
+      authorId: userProfile?.id || 'demo_fan_101',
+      authorName: userProfile?.displayName || 'Membre FanLink',
+      authorAvatar: userProfile?.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
+      authorBadge: userProfile?.badge || 'none',
+      content: text,
+      createdAt: new Date().toISOString()
+    };
+
+    setCommentsMap(prev => ({
+      ...prev,
+      [postId]: [...(prev[postId] || []), newComment]
+    }));
+
+    setPosts(prev => prev.map(p => {
+      if (p.id === postId) {
+        return { ...p, commentsCount: p.commentsCount + 1 };
+      }
+      return p;
+    }));
+  };
+
+  const handlePostCreated = (newPost: Post) => {
+    setPosts(prev => [newPost, ...prev]);
+  };
+
+  const handleDeletePost = (postId: string) => {
+    setPosts(prev => prev.filter(p => p.id !== postId));
+  };
+
+  const handleSelectCreator = (creator: UserProfile) => {
+    setCreatorToView(creator);
+    setCurrentTab('profile');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleOpenMessageWithCreator = (creator: UserProfile) => {
+    setTargetConversationId(creator.id === 'sarah_queen' ? 'conv_sarah' : 'conv_fally');
+    setCurrentTab('messages');
+  };
+
+  return (
+    <div className="min-h-screen bg-[#030604] text-white flex flex-col font-sans selection:bg-[#00E676] selection:text-black">
+      
+      {/* Offline Alert Indicator */}
+      <OfflineIndicator />
+
+      {/* Global Header */}
+      <Header
+        currentTab={currentTab}
+        feedSubTab={feedSubTab}
+        onSelectFeedSubTab={(sub) => setFeedSubTab(sub)}
+        onOpenLive={() => {
+          setCurrentTab('live');
+          setCreatorToView(null);
+        }}
+        onOpenWallet={() => setIsWalletOpen(true)}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAI={() => setIsAIOpen(true)}
+        onSelectTab={(tab) => {
+          setCurrentTab(tab);
+          setCreatorToView(null);
+        }}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
+
+      {/* Main Body Router */}
+      <main className="flex-1 w-full max-w-7xl mx-auto">
+        {currentTab === 'feed' && (
+          <FeedView
+            posts={posts}
+            creators={creators}
+            feedSubTab={feedSubTab}
+            onLikePost={handleLikePost}
+            onOpenComments={(post) => setActiveCommentsPost(post)}
+            onOpenShare={(post) => setActiveSharePost(post)}
+            onSelectCreator={handleSelectCreator}
+            onOpenLive={() => setCurrentTab('live')}
+            onOpenCreate={() => setIsCreateOpen(true)}
+            searchQuery={searchQuery}
+          />
+        )}
+
+        {currentTab === 'discover' && (
+          <StarsView
+            creators={creators}
+            onSelectCreator={handleSelectCreator}
+            onOpenGift={(creator) => {
+              setIsWalletOpen(true);
+            }}
+            onRequestVerification={() => setIsVerificationOpen(true)}
+          />
+        )}
+
+        {currentTab === 'messages' && (
+          <MessagesView
+            onOpenWallet={() => setIsWalletOpen(true)}
+            onReportUser={(targetId, reason) => console.log('Signalé:', targetId, reason)}
+            targetConversationId={targetConversationId}
+          />
+        )}
+
+        {currentTab === 'live' && (
+          <LiveView
+            onOpenWallet={() => setIsWalletOpen(true)}
+          />
+        )}
+
+        {currentTab === 'monetization' && (
+          <MonetizationView
+            onRequestVerification={() => setIsVerificationOpen(true)}
+          />
+        )}
+
+        {currentTab === 'admin' && (
+          <AdminView
+            posts={posts}
+            onDeletePost={handleDeletePost}
+          />
+        )}
+
+        {currentTab === 'profile' && (
+          <ProfileView
+            creatorToView={creatorToView}
+            onBack={creatorToView ? () => setCreatorToView(null) : undefined}
+            onOpenWallet={() => setIsWalletOpen(true)}
+            onOpenAuth={() => setIsAuthOpen(true)}
+            onOpenTerms={() => setLegalModalType('terms')}
+            onOpenPrivacy={() => setLegalModalType('privacy')}
+            onOpenMonetization={() => setCurrentTab('monetization')}
+            onOpenAdmin={() => setCurrentTab('admin')}
+            onOpenMessageWithCreator={handleOpenMessageWithCreator}
+            onOpenSettings={() => {
+              setCurrentTab('settings');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onOpenEvolution={() => {
+              setCurrentTab('evolution');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onOpenActivityCenter={() => {
+              setCurrentTab('activity-center');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        )}
+
+        {currentTab === 'settings' && (
+          <SettingsView
+            onBack={() => {
+              setCurrentTab('profile');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onOpenVerification={() => setIsVerificationOpen(true)}
+            onOpenTerms={() => setLegalModalType('terms')}
+            onOpenPrivacy={() => setLegalModalType('privacy')}
+            onOpenEvolution={() => {
+              setCurrentTab('evolution');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        )}
+
+        {currentTab === 'evolution' && (
+          <EvolutionDashboardView
+            onBack={() => {
+              setCurrentTab('profile');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            posts={posts}
+            creators={creators}
+            onSelectCreator={handleSelectCreator}
+            onOpenMonetization={() => setCurrentTab('monetization')}
+            onOpenWallet={() => setIsWalletOpen(true)}
+          />
+        )}
+
+        {currentTab === 'activity-center' && (
+          <ActivityCenterView
+            onBack={() => {
+              setCurrentTab('profile');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            posts={posts}
+            onSelectCreator={handleSelectCreator}
+          />
+        )}
+      </main>
+
+      {/* Global Bottom Navigation */}
+      <BottomNav
+        currentTab={currentTab}
+        onSelectTab={(tab) => {
+          setCurrentTab(tab);
+          setCreatorToView(null);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenCreate={() => setIsCreateOpen(true)}
+        unreadMessagesCount={1}
+      />
+
+      {/* Global Modals */}
+      {activeCommentsPost && (
+        <PostCommentsModal
+          post={activeCommentsPost}
+          comments={commentsMap[activeCommentsPost.id] || []}
+          onClose={() => setActiveCommentsPost(null)}
+          onAddComment={handleAddComment}
+        />
+      )}
+
+      {activeSharePost && (
+        <ShareModal
+          post={activeSharePost}
+          onClose={() => setActiveSharePost(null)}
+        />
+      )}
+
+      {isCreateOpen && (
+        <CreatePostModal
+          onClose={() => setIsCreateOpen(false)}
+          onPostCreated={handlePostCreated}
+        />
+      )}
+
+      {isWalletOpen && (
+        <WalletModal
+          onClose={() => setIsWalletOpen(false)}
+        />
+      )}
+
+      {isAIOpen && (
+        <AIStudioPanel
+          onClose={() => setIsAIOpen(false)}
+        />
+      )}
+
+      {isAuthOpen && (
+        <AuthModal
+          onClose={() => setIsAuthOpen(false)}
+        />
+      )}
+
+      {isVerificationOpen && (
+        <VerificationModal
+          onClose={() => setIsVerificationOpen(false)}
+          onSubmit={(req) => console.log('Vérification soumise:', req)}
+        />
+      )}
+
+      {legalModalType && (
+        <TermsPrivacyModal
+          type={legalModalType}
+          onClose={() => setLegalModalType(null)}
+        />
+      )}
+
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <CurrencyLangProvider>
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
+    </CurrencyLangProvider>
+  );
+}

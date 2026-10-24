@@ -1,0 +1,13 @@
+{
+  "appId": "com.fanlinkai.app",
+  "appName": "FanLink AI",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#030604",
+    "allowMixedContent": true
+  }
+}

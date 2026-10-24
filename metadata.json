@@ -1,0 +1,6 @@
+{
+  "name": "FanLink AI",
+  "description": "Plateforme sociale internationale reliant les fans et les créateurs avec intelligence artificielle, abonnements, messagerie et directs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

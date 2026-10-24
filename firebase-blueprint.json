@@ -1,0 +1,196 @@
+{
+  "entities": {
+    "user": {
+      "title": "User",
+      "description": "Public profile of a registered Fan or Creator on FanLink AI",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 80 },
+        "username": { "type": "string", "maxLength": 40 },
+        "accountType": { "type": "string", "enum": ["fan", "creator", "artist", "athlete"] },
+        "bio": { "type": "string", "maxLength": 300 },
+        "country": { "type": "string", "maxLength": 60 },
+        "avatarUrl": { "type": "string", "maxLength": 500 },
+        "bannerUrl": { "type": "string", "maxLength": 500 },
+        "isVerified": { "type": "boolean" },
+        "followersCount": { "type": "number" },
+        "followingCount": { "type": "number" },
+        "postsCount": { "type": "number" },
+        "badge": { "type": "string", "enum": ["none", "active_fan", "vip", "star_verified"] },
+        "preferredLanguage": { "type": "string", "maxLength": 10 },
+        "preferredCurrency": { "type": "string", "maxLength": 10 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "displayName", "username", "accountType"]
+    },
+    "userPrivate": {
+      "title": "UserPrivate",
+      "description": "Sensitive personal information and wallet balance of the user",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "maxLength": 120 },
+        "balanceCoins": { "type": "number" },
+        "creatorEarnings": { "type": "number" },
+        "pendingEarnings": { "type": "number" },
+        "payoutMethod": { "type": "string", "maxLength": 50 },
+        "payoutAccount": { "type": "string", "maxLength": 100 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email"]
+    },
+    "post": {
+      "title": "Post",
+      "description": "Social media publication containing text, photos or video links",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "authorId": { "type": "string", "maxLength": 128 },
+        "authorName": { "type": "string", "maxLength": 80 },
+        "authorUsername": { "type": "string", "maxLength": 40 },
+        "authorAvatar": { "type": "string", "maxLength": 500 },
+        "authorVerified": { "type": "boolean" },
+        "content": { "type": "string", "maxLength": 1000 },
+        "mediaType": { "type": "string", "enum": ["none", "image", "video"] },
+        "mediaUrl": { "type": "string", "maxLength": 1000 },
+        "tags": { "type": "string", "maxLength": 200 },
+        "likesCount": { "type": "number" },
+        "commentsCount": { "type": "number" },
+        "isExclusive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "authorId", "content"]
+    },
+    "comment": {
+      "title": "Comment",
+      "description": "User response to a post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "postId": { "type": "string", "maxLength": 128 },
+        "authorId": { "type": "string", "maxLength": 128 },
+        "authorName": { "type": "string", "maxLength": 80 },
+        "authorAvatar": { "type": "string", "maxLength": 500 },
+        "content": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "postId", "authorId", "content"]
+    },
+    "conversation": {
+      "title": "Conversation",
+      "description": "Direct messaging thread between users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "participants": { "type": "string", "maxLength": 300 },
+        "lastMessage": { "type": "string", "maxLength": 300 },
+        "lastSenderId": { "type": "string", "maxLength": 128 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "participants"]
+    },
+    "message": {
+      "title": "Message",
+      "description": "Direct message within a conversation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "conversationId": { "type": "string", "maxLength": 128 },
+        "senderId": { "type": "string", "maxLength": 128 },
+        "senderName": { "type": "string", "maxLength": 80 },
+        "text": { "type": "string", "maxLength": 1000 },
+        "isPaid": { "type": "boolean" },
+        "priceCoins": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "conversationId", "senderId", "text"]
+    },
+    "verificationRequest": {
+      "title": "VerificationRequest",
+      "description": "Official badge request submitted by creator for review",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "fullName": { "type": "string", "maxLength": 100 },
+        "stageName": { "type": "string", "maxLength": 100 },
+        "category": { "type": "string", "maxLength": 60 },
+        "country": { "type": "string", "maxLength": 60 },
+        "socialProof": { "type": "string", "maxLength": 300 },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "fullName", "stageName", "category", "status"]
+    },
+    "report": {
+      "title": "Report",
+      "description": "Content moderation report",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "reporterId": { "type": "string", "maxLength": 128 },
+        "targetType": { "type": "string", "enum": ["post", "user", "message"] },
+        "targetId": { "type": "string", "maxLength": 128 },
+        "reason": { "type": "string", "maxLength": 300 },
+        "status": { "type": "string", "enum": ["pending", "reviewed", "dismissed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "reporterId", "targetType", "targetId", "reason", "status"]
+    },
+    "transaction": {
+      "title": "Transaction",
+      "description": "Financial or coin transaction record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "creatorId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["gift", "payout", "deposit", "paid_message"] },
+        "amountCoins": { "type": "number" },
+        "amountFiat": { "type": "number" },
+        "currency": { "type": "string", "maxLength": 10 },
+        "status": { "type": "string", "enum": ["completed", "pending", "failed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "type", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "user",
+      "description": "Public user profiles"
+    },
+    "/users/{userId}/private/info": {
+      "schema": "userPrivate",
+      "description": "Private PII and wallet for the user"
+    },
+    "/posts/{postId}": {
+      "schema": "post",
+      "description": "Social feed posts"
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": "comment",
+      "description": "Comments attached to posts"
+    },
+    "/conversations/{conversationId}": {
+      "schema": "conversation",
+      "description": "Direct messaging rooms"
+    },
+    "/conversations/{conversationId}/messages/{messageId}": {
+      "schema": "message",
+      "description": "Messages inside a conversation"
+    },
+    "/verificationRequests/{requestId}": {
+      "schema": "verificationRequest",
+      "description": "Creator badge verification submissions"
+    },
+    "/reports/{reportId}": {
+      "schema": "report",
+      "description": "Moderation reports"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "transaction",
+      "description": "Financial ledger transactions"
+    }
+  }
+}

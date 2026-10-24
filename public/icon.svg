@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="neonFGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4EFA9D" />
+      <stop offset="45%" stop-color="#00E676" />
+      <stop offset="100%" stop-color="#009A52" />
+    </linearGradient>
+    <linearGradient id="innerFoldGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#006636" />
+      <stop offset="60%" stop-color="#00B86B" />
+      <stop offset="100%" stop-color="#34FF96" />
+    </linearGradient>
+    <linearGradient id="sheen" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.45" />
+      <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.0" />
+    </linearGradient>
+    <filter id="glowF" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Deep dark rounded container -->
+  <rect width="512" height="512" rx="120" fill="#030604" />
+  
+  <!-- Subtle border glow -->
+  <rect width="504" height="504" x="4" y="4" rx="116" fill="none" stroke="#183A2A" stroke-width="4" opacity="0.8" />
+
+  <!-- The 3D Folded Ribbon F Logo -->
+  <g filter="url(#glowF)">
+    <!-- Lower ribbon vertical stem with smooth bottom curve -->
+    <path d="M 175 140 C 175 140, 185 240, 185 300 C 185 365, 140 405, 140 405 C 140 405, 235 410, 260 350 C 275 310, 275 250, 275 220 L 330 220 C 375 220, 420 185, 410 145 C 400 125, 360 140, 310 145 L 255 145 C 235 145, 215 140, 175 140 Z" fill="url(#neonFGrad)" />
+    
+    <!-- Top curved swooshing ribbon wing -->
+    <path d="M 180 145 C 220 135, 330 95, 435 130 C 470 142, 455 168, 415 180 C 345 200, 260 215, 220 215 C 190 215, 180 185, 180 145 Z" fill="url(#innerFoldGrad)" />
+
+    <!-- 3D Ribbon fold shadow & depth layer -->
+    <path d="M 185 185 C 210 185, 280 200, 360 160 C 320 200, 245 220, 205 220 C 195 220, 188 205, 185 185 Z" fill="#004D25" opacity="0.8" />
+    
+    <!-- Highlight Sheen -->
+    <path d="M 200 145 C 250 130, 340 115, 420 140 C 360 155, 270 170, 220 170 Z" fill="url(#sheen)" />
+  </g>
+</svg>
