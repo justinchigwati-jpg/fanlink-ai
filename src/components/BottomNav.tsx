@@ -2,6 +2,7 @@ import React from 'react';
 import { 
   Home, 
   Search, 
+  Trophy,
   Plus, 
   MessageSquare, 
   User 
@@ -38,17 +39,22 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           <span className="text-[10px] tracking-tight">Accueil</span>
         </button>
 
-        {/* 2. Découvrir */}
+        {/* 2. Matchs & Pronos */}
         <button
-          onClick={() => onSelectTab('discover')}
+          onClick={() => onSelectTab('matches')}
           className={`flex-1 flex flex-col items-center gap-0.5 py-1 transition ${
-            currentTab === 'discover'
+            currentTab === 'matches'
               ? 'text-[#00E676] font-bold'
               : 'text-[#A8B5AE] hover:text-white'
           }`}
         >
-          <Search className={`w-5 h-5 ${currentTab === 'discover' ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
-          <span className="text-[10px] tracking-tight">Découvrir</span>
+          <div className="relative">
+            <Trophy className={`w-5 h-5 ${currentTab === 'matches' ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
+            <span className="absolute -top-1 -right-2 px-1 rounded-full bg-[#00E676] text-black text-[8px] font-black">
+              LIVE
+            </span>
+          </div>
+          <span className="text-[10px] tracking-tight">Matchs</span>
         </button>
 
         {/* 3. Central Green Button (+) */}

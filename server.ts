@@ -13,7 +13,55 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
-app.use(express.json({ limit: '10mb' }));
+// Security, CORS and Preflight Handling for Web and Capacitor Native Android
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Admin-Email');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
+// In-memory IP rate limiter for API endpoints (max 120 requests/minute per client IP)
+const ipRateMap = new Map<string, { count: number; resetTime: number }>();
+app.use('/api', (req, res, next) => {
+  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const windowMs = 60 * 1000;
+  const record = ipRateMap.get(ip);
+
+  if (!record || now > record.resetTime) {
+    ipRateMap.set(ip, { count: 1, resetTime: now + windowMs });
+    return next();
+  }
+
+  if (record.count >= 120) {
+    return res.status(429).json({
+      success: false,
+      error: 'Trop de requêtes. Veuillez patienter une minute avant de réessayer.'
+    });
+  }
+
+  record.count += 1;
+  next();
+});
+
+// Configure static uploads directory for media persistence
+const uploadsDir = path.resolve(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
+
+app.use(express.json({ limit: '25mb' }));
 
 // Initialize Google Gemini AI on Server Side
 let ai: GoogleGenAI | null = null;
@@ -345,6 +393,87 @@ app.get('/api/project-info', (req, res) => {
     sourceArchiveUrl: '/fanlink-ai-source.zip',
     documentationUrl: '/docs/ANDROID_APK_GUIDE.md'
   });
+});
+
+// 5. Media Upload Endpoint (Files saved to persistent uploads directory)
+app.post('/api/upload', (req, res) => {
+  try {
+    const { dataBase64, filename, mimeType } = req.body;
+    if (!dataBase64) {
+      return res.status(400).json({ success: false, error: 'Données de fichier manquantes.' });
+    }
+
+    const matches = dataBase64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    let buffer: Buffer;
+    let extension = 'jpg';
+
+    if (matches && matches.length === 3) {
+      const type = matches[1];
+      buffer = Buffer.from(matches[2], 'base64');
+      if (type.includes('png')) extension = 'png';
+      else if (type.includes('webp')) extension = 'webp';
+      else if (type.includes('gif')) extension = 'gif';
+      else if (type.includes('mp4') || type.includes('video')) extension = 'mp4';
+      else if (type.includes('quicktime')) extension = 'mov';
+    } else {
+      buffer = Buffer.from(dataBase64, 'base64');
+      if (mimeType?.includes('video')) extension = 'mp4';
+    }
+
+    // Max 20MB limit check
+    if (buffer.length > 20 * 1024 * 1024) {
+      return res.status(413).json({ success: false, error: 'Fichier trop volumineux (max 20 Mo).' });
+    }
+
+    const safeName = `media_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${extension}`;
+    const targetPath = path.join(uploadsDir, safeName);
+    fs.writeFileSync(targetPath, buffer);
+
+    return res.json({
+      success: true,
+      url: `/uploads/${safeName}`,
+      filename: safeName,
+      bytes: buffer.length,
+      mimeType: mimeType || (extension === 'mp4' ? 'video/mp4' : 'image/jpeg')
+    });
+  } catch (err) {
+    console.error('Upload handling error:', err);
+    return res.status(500).json({ success: false, error: 'Erreur lors du traitement du fichier média.' });
+  }
+});
+
+// Moderation & Reports Storage
+const serverReports: any[] = [];
+app.post('/api/reports', (req, res) => {
+  const { reporterId, targetType, targetId, reason } = req.body;
+  if (!reporterId || !targetId || !reason) {
+    return res.status(400).json({ success: false, error: 'Champs de signalement obligatoires manquants.' });
+  }
+
+  const report = {
+    id: `rep_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    reporterId,
+    targetType: targetType || 'post',
+    targetId,
+    reason: String(reason).slice(0, 500),
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  };
+
+  serverReports.unshift(report);
+  return res.json({ success: true, report, message: 'Signalement enregistré pour examen par l\'équipe de modération.' });
+});
+
+app.get('/api/reports', (req, res) => {
+  const adminEmail = (req.headers['x-admin-email'] as string)?.toLowerCase();
+  const authHeader = req.headers.authorization;
+  if (adminEmail !== 'justinchigwati@gmail.com' && !authHeader) {
+    return res.status(403).json({
+      success: false,
+      error: 'Accès réservé aux administrateurs autorisés de la plateforme.'
+    });
+  }
+  return res.json({ success: true, count: serverReports.length, reports: serverReports });
 });
 
 // Health check endpoint

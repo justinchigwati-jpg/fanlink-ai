@@ -53,8 +53,8 @@ service cloud.firestore {
         (
           isOwner(userId) && isValidUser(incoming()) &&
           incoming().id == existing().id &&
-          // Normal users cannot verify themselves or assign badges
-          (!incoming().diff(existing()).affectedKeys().hasAny(['isVerified', 'badge']) || isAdmin())
+          // Normal users cannot directly modify administrative status, verification, badges, FanCoins, or creator revenues
+          (!incoming().diff(existing()).affectedKeys().hasAny(['isAdmin', 'role', 'isVerified', 'badge', 'coinsBalance', 'creatorEarningsEur', 'pendingEarningsEur']) || isAdmin())
         )
       );
       allow delete: if isAdmin() || isOwner(userId);
@@ -92,7 +92,7 @@ service cloud.firestore {
     }
 
     match /posts/{postId} {
-      allow read: if isValidId(postId);
+      allow read: if true;
       allow create: if isSignedIn() && isValidPost(incoming()) && incoming().authorId == request.auth.uid;
       allow update: if isSignedIn() && (
         isAdmin() ||
@@ -102,17 +102,31 @@ service cloud.firestore {
             // Author updating content
             (isOwner(existing().authorId) && isValidPost(incoming())) ||
             // Users liking / incrementing counters
-            incoming().diff(existing()).affectedKeys().hasOnly(['likesCount', 'commentsCount'])
+            incoming().diff(existing()).affectedKeys().hasOnly(['likesCount', 'commentsCount', 'likedByCurrentUser'])
           )
         )
       );
       allow delete: if isSignedIn() && (isAdmin() || isOwner(existing().authorId));
 
       match /comments/{commentId} {
-        allow read: if isValidId(postId) && isValidId(commentId);
+        allow read: if true;
         allow create: if isSignedIn() && incoming().authorId == request.auth.uid && incoming().content.size() <= 500;
         allow delete: if isSignedIn() && (isAdmin() || isOwner(existing().authorId) || isOwner(get(/databases/$(database)/documents/posts/$(postId)).data.authorId));
       }
+    }
+
+    // --- Football Matches Collection ---
+    match /matches/{matchId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- Match Predictions Collection ---
+    match /predictions/{predId} {
+      allow read: if true;
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && (isAdmin() || existing().userId == request.auth.uid);
+      allow delete: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
     }
 
     // --- Conversations and Messages ---

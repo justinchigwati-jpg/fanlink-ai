@@ -13,6 +13,7 @@ import {
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
 import { useCurrencyLang } from '../context/CurrencyLangContext';
+import { getApiUrl } from '../services/apiConfig';
 
 interface WalletModalProps {
   onClose: () => void;
@@ -53,7 +54,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({ onClose }) => {
     const idempotencyKey = `dep_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     try {
-      const res = await fetch('/api/payments/deposit', {
+      const res = await fetch(getApiUrl('/api/payments/deposit'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

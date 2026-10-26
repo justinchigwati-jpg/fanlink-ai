@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCurrencyLang } from '../context/CurrencyLangContext';
+import { getApiUrl } from '../services/apiConfig';
 
 interface MonetizationViewProps {
   onRequestVerification: () => void;
@@ -55,7 +56,7 @@ export const MonetizationView: React.FC<MonetizationViewProps> = ({ onRequestVer
     }
 
     try {
-      const res = await fetch('/api/payments/payout-request', {
+      const res = await fetch(getApiUrl('/api/payments/payout-request'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

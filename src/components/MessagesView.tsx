@@ -16,6 +16,7 @@ import {
 import { Conversation, Message, UserProfile } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { INITIAL_CONVERSATIONS, INITIAL_MESSAGES } from '../services/dataService';
+import { getApiUrl } from '../services/apiConfig';
 
 interface MessagesViewProps {
   onOpenWallet: () => void;
@@ -91,7 +92,7 @@ export const MessagesView: React.FC<MessagesViewProps> = ({
     setUnlockingMessageId(msg.id);
 
     try {
-      const res = await fetch('/api/payments/unlock-message', {
+      const res = await fetch(getApiUrl('/api/payments/unlock-message'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

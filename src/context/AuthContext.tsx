@@ -7,7 +7,8 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  signInAnonymously
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType } from '../firebase';
@@ -21,6 +22,7 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   registerWithEmail: (email: string, pass: string, name: string, username: string, type: AccountType) => Promise<void>;
+  loginAsGuest: (name: string, username: string, type?: AccountType) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfileData: (updates: Partial<UserProfile>) => Promise<void>;
@@ -222,6 +224,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginAsGuest = async (name: string, username: string, type: AccountType = 'fan') => {
+    try {
+      let uid = `user_${Date.now()}`;
+      try {
+        const cred = await signInAnonymously(auth);
+        uid = cred.user.uid;
+      } catch (authErr) {
+        console.warn('Anonymous auth fallback:', authErr);
+      }
+
+      const cleanUsername = (username || `fan_${uid.substring(0, 6)}`).toLowerCase().replace(/[^a-z0-9_]/g, '');
+      const newProfile: UserProfile = {
+        id: uid,
+        email: `${cleanUsername}@fanlink.ai`,
+        displayName: name || 'Supporter FanLink',
+        username: cleanUsername,
+        accountType: type,
+        bio: 'Supporter & Membre actif FanLink AI ⚡',
+        country: 'France',
+        avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80',
+        bannerUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80',
+        isVerified: false,
+        badge: 'active_fan',
+        followersCount: 0,
+        followingCount: 0,
+        postsCount: 0,
+        coinsBalance: 200, // Gift of 200 FanCoins for rapid testing
+        creatorEarningsEur: 0,
+        pendingEarningsEur: 0,
+        preferredLanguage: 'fr',
+        preferredCurrency: 'EUR',
+        createdAt: new Date().toISOString()
+      };
+
+      try {
+        await setDoc(doc(db, 'users', uid), newProfile);
+      } catch (e) {
+        console.warn('User profile doc set warning:', e);
+      }
+
+      setUserProfile(newProfile);
+      localStorage.setItem('fanlink_user_profile', JSON.stringify(newProfile));
+    } catch (err) {
+      console.error('Guest login failed:', err);
+      throw err;
+    }
+  };
+
   const resetPassword = async (email: string) => {
     await sendPasswordResetEmail(auth, email);
   };
@@ -293,6 +343,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loginWithGoogle,
       loginWithEmail,
       registerWithEmail,
+      loginAsGuest,
       resetPassword,
       logout,
       updateProfileData,

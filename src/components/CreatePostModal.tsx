@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Post } from '../types';
+import { getApiUrl } from '../services/apiConfig';
 
 interface CreatePostModalProps {
   onClose: () => void;
@@ -56,7 +57,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPos
     setIsAILoading(true);
     setErrorMessage(null);
     try {
-      const response = await fetch('/api/ai/creator-assistant', {
+      const response = await fetch(getApiUrl('/api/ai/creator-assistant'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -85,11 +86,39 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPos
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim() && !mediaUrl) {
       setErrorMessage('Veuillez ajouter un message ou un média avant de publier.');
       return;
+    }
+
+    setIsUploading(true);
+    setErrorMessage(null);
+
+    let finalMediaUrl = mediaUrl;
+
+    // If media is a newly picked local data URL, upload to persistent server storage
+    if (mediaUrl && mediaUrl.startsWith('data:')) {
+      try {
+        const uploadRes = await fetch(getApiUrl('/api/upload'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dataBase64: mediaUrl,
+            filename: mediaFile?.name || 'media',
+            mimeType: mediaFile?.type || (mediaType === 'video' ? 'video/mp4' : 'image/jpeg')
+          })
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadData.success && uploadData.url) {
+          finalMediaUrl = uploadData.url;
+        }
+      } catch (uploadErr) {
+        console.warn('Upload fallback to direct preview:', uploadErr);
+      }
     }
 
     const tags = tagsInput
@@ -107,7 +136,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPos
       authorVerified: userProfile?.isVerified || false,
       content: content.trim(),
       mediaType,
-      mediaUrl: mediaUrl || undefined,
+      mediaUrl: finalMediaUrl || undefined,
       tags: tags.length > 0 ? tags : ['FanLink'],
       likesCount: 0,
       commentsCount: 0,
@@ -117,6 +146,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPos
       likedByCurrentUser: false
     };
 
+    setIsUploading(false);
     onPostCreated(newPost);
     onClose();
   };
@@ -299,9 +329,17 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onPos
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#00E676] hover:bg-[#34FF96] text-black font-black text-xs shadow-lg shadow-[#00E676]/20 transition"
+              disabled={isUploading}
+              className="px-6 py-2.5 rounded-xl bg-[#00E676] hover:bg-[#34FF96] text-black font-black text-xs shadow-lg shadow-[#00E676]/20 transition flex items-center gap-2 disabled:opacity-50"
             >
-              Publier maintenant
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Envoi en cours...</span>
+                </>
+              ) : (
+                <span>Publier maintenant</span>
+              )}
             </button>
           </div>
 

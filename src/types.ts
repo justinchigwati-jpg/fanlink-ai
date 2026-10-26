@@ -218,3 +218,36 @@ export interface BadgeInfo {
   unlockedAt?: string;
 }
 
+export interface FootballMatch {
+  id: string;
+  league: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeLogo: string;
+  awayLogo: string;
+  matchTime: string;
+  status: 'upcoming' | 'live' | 'finished';
+  homeScore?: number;
+  awayScore?: number;
+  currentMinute?: string;
+  aiPrediction?: string;
+  aiProbabilityHome?: number;
+  aiProbabilityDraw?: number;
+  aiProbabilityAway?: number;
+  totalPredictions?: number;
+}
+
+export interface PredictionEntry {
+  id: string;
+  matchId: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  predictedHome: number;
+  predictedAway: number;
+  wagerCoins: number;
+  status: 'pending' | 'won' | 'lost';
+  pointsAwarded?: number;
+  createdAt: string;
+}
+

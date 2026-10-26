@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { App as CapacitorApp } from '@capacitor/app';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CurrencyLangProvider } from './context/CurrencyLangContext';
 import { Header } from './components/Header';
@@ -22,9 +23,16 @@ import { AuthModal } from './components/AuthModal';
 import { VerificationModal } from './components/VerificationModal';
 import { TermsPrivacyModal } from './components/TermsPrivacyModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { MatchCenterView } from './components/MatchCenterView';
 import { 
   INITIAL_POSTS, 
-  SEED_CREATORS 
+  SEED_CREATORS,
+  subscribeToPosts,
+  createPostInFirestore,
+  toggleLikePostInFirestore,
+  addCommentInFirestore,
+  submitVerificationRequest,
+  submitContentReport
 } from './services/dataService';
 import { Post, Comment, UserProfile, VerificationRequest } from './types';
 import { testFirestoreConnection } from './firebase';
@@ -74,21 +82,61 @@ function MainApp() {
   const [isVerificationOpen, setIsVerificationOpen] = useState(false);
   const [legalModalType, setLegalModalType] = useState<'terms' | 'privacy' | null>(null);
 
-  // Initial connection test
+  // Initial connection test and real-time posts listener
   useEffect(() => {
     testFirestoreConnection().catch(console.warn);
+    const unsubscribe = subscribeToPosts((livePosts) => {
+      setPosts(livePosts);
+    });
+    return () => unsubscribe();
   }, []);
 
-  // Save posts whenever updated
+  // Native Android Hardware Back Button Support (Capacitor)
   useEffect(() => {
-    localStorage.setItem('fanlink_posts_v2', JSON.stringify(posts));
-  }, [posts]);
+    let removeListener: (() => void) | null = null;
+    CapacitorApp.addListener('backButton', () => {
+      if (activeCommentsPost) { setActiveCommentsPost(null); return; }
+      if (activeSharePost) { setActiveSharePost(null); return; }
+      if (isCreateOpen) { setIsCreateOpen(false); return; }
+      if (isWalletOpen) { setIsWalletOpen(false); return; }
+      if (isAIOpen) { setIsAIOpen(false); return; }
+      if (isAuthOpen) { setIsAuthOpen(false); return; }
+      if (isVerificationOpen) { setIsVerificationOpen(false); return; }
+      if (legalModalType) { setLegalModalType(null); return; }
+
+      if (creatorToView) { setCreatorToView(null); return; }
+      if (currentTab !== 'feed') { setCurrentTab('feed'); return; }
+
+      // Exit/minimize app if on root feed with no modals open
+      CapacitorApp.minimizeApp().catch(() => {});
+    }).then(handler => {
+      removeListener = () => handler.remove();
+    }).catch(err => {
+      console.warn('Capacitor backButton not supported on web:', err);
+    });
+
+    return () => {
+      if (removeListener) removeListener();
+    };
+  }, [
+    activeCommentsPost,
+    activeSharePost,
+    isCreateOpen,
+    isWalletOpen,
+    isAIOpen,
+    isAuthOpen,
+    isVerificationOpen,
+    legalModalType,
+    creatorToView,
+    currentTab
+  ]);
 
   // Handlers
   const handleLikePost = (postId: string) => {
     setPosts(prev => prev.map(p => {
       if (p.id === postId) {
         const isLiked = !p.likedByCurrentUser;
+        toggleLikePostInFirestore(postId, isLiked);
         return {
           ...p,
           likedByCurrentUser: isLiked,
@@ -111,6 +159,8 @@ function MainApp() {
       createdAt: new Date().toISOString()
     };
 
+    addCommentInFirestore(postId, newComment);
+
     setCommentsMap(prev => ({
       ...prev,
       [postId]: [...(prev[postId] || []), newComment]
@@ -126,6 +176,7 @@ function MainApp() {
 
   const handlePostCreated = (newPost: Post) => {
     setPosts(prev => [newPost, ...prev]);
+    createPostInFirestore(newPost);
   };
 
   const handleDeletePost = (postId: string) => {
@@ -186,6 +237,16 @@ function MainApp() {
           />
         )}
 
+        {currentTab === 'matches' && (
+          <MatchCenterView
+            onOpenLiveRoom={(roomTitle) => {
+              setCurrentTab('live');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onOpenWallet={() => setIsWalletOpen(true)}
+          />
+        )}
+
         {currentTab === 'discover' && (
           <StarsView
             creators={creators}
@@ -200,7 +261,14 @@ function MainApp() {
         {currentTab === 'messages' && (
           <MessagesView
             onOpenWallet={() => setIsWalletOpen(true)}
-            onReportUser={(targetId, reason) => console.log('Signalé:', targetId, reason)}
+            onReportUser={(targetId, reason) => {
+              submitContentReport({
+                reporterId: userProfile?.id,
+                targetType: 'user',
+                targetId,
+                reason
+              });
+            }}
             targetConversationId={targetConversationId}
           />
         )}
@@ -349,7 +417,13 @@ function MainApp() {
       {isVerificationOpen && (
         <VerificationModal
           onClose={() => setIsVerificationOpen(false)}
-          onSubmit={(req) => console.log('Vérification soumise:', req)}
+          onSubmit={(req) => {
+            submitVerificationRequest({
+              ...req,
+              userId: userProfile?.id || 'demo_fan_101',
+              status: 'pending'
+            });
+          }}
         />
       )}
 

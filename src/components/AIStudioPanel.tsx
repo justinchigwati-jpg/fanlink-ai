@@ -13,6 +13,7 @@ import {
   Compass
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { getApiUrl } from '../services/apiConfig';
 
 interface AIStudioPanelProps {
   onClose: () => void;
@@ -39,7 +40,7 @@ export const AIStudioPanel: React.FC<AIStudioPanelProps> = ({ onClose }) => {
 
     try {
       if (activeTab === 'discover') {
-        const res = await fetch('/api/ai/match-creators', {
+        const res = await fetch(getApiUrl('/api/ai/match-creators'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -50,7 +51,7 @@ export const AIStudioPanel: React.FC<AIStudioPanelProps> = ({ onClose }) => {
         const data = await res.json();
         setAiResult(data.recommendation || 'Explorez les catégories Musique et Sport en tête de liste !');
       } else {
-        const res = await fetch('/api/ai/creator-assistant', {
+        const res = await fetch(getApiUrl('/api/ai/creator-assistant'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

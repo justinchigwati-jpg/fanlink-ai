@@ -25,6 +25,7 @@ import {
   UserActivityItem,
   BadgeInfo 
 } from '../types';
+import { getApiUrl } from './apiConfig';
 
 // Pre-configured official virtual gifts
 export const VIRTUAL_GIFTS: VirtualGift[] = [
@@ -747,6 +748,159 @@ export const addStoredUserActivity = (activity: UserActivityItem): void => {
     localStorage.setItem('fanlink_user_activities_v1', JSON.stringify(updated));
   } catch (e) {
     console.warn(e);
+  }
+};
+
+// --- REAL-TIME FIRESTORE SERVICES ---
+
+import { onSnapshot, writeBatch } from 'firebase/firestore';
+
+/**
+ * Real-time listener for posts across all devices with automatic seeding fallback
+ */
+export const subscribeToPosts = (onUpdate: (posts: Post[]) => void): (() => void) => {
+  const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(50));
+  
+  const unsubscribe = onSnapshot(postsQuery, async (snapshot) => {
+    if (!snapshot.empty) {
+      const livePosts = snapshot.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      })) as Post[];
+      onUpdate(livePosts);
+    } else {
+      // Seed initial posts if Firestore collection is fresh
+      try {
+        const batch = writeBatch(db);
+        INITIAL_POSTS.forEach(p => {
+          const docRef = doc(db, 'posts', p.id);
+          batch.set(docRef, p);
+        });
+        await batch.commit();
+        onUpdate(INITIAL_POSTS);
+      } catch (err) {
+        console.warn('Initial seeding fallback to memory:', err);
+        onUpdate(INITIAL_POSTS);
+      }
+    }
+  }, (error) => {
+    console.warn('Firestore posts subscription error:', error);
+    onUpdate(INITIAL_POSTS);
+  });
+
+  return unsubscribe;
+};
+
+/**
+ * Creates a new post in Firestore
+ */
+export const createPostInFirestore = async (post: Post): Promise<void> => {
+  try {
+    const postRef = doc(db, 'posts', post.id);
+    await setDoc(postRef, {
+      id: post.id,
+      authorId: post.authorId,
+      authorName: post.authorName,
+      authorUsername: post.authorUsername,
+      authorAvatar: post.authorAvatar,
+      authorBadge: post.authorBadge,
+      authorVerified: Boolean(post.authorVerified),
+      content: post.content,
+      mediaType: post.mediaType,
+      mediaUrl: post.mediaUrl || '',
+      tags: post.tags,
+      likesCount: post.likesCount || 0,
+      commentsCount: post.commentsCount || 0,
+      isExclusive: Boolean(post.isExclusive),
+      exclusivePriceCoins: post.exclusivePriceCoins || 0,
+      createdAt: post.createdAt
+    });
+  } catch (err) {
+    handleFirestoreError(err, OperationType.CREATE, `posts/${post.id}`);
+  }
+};
+
+/**
+ * Toggles like count on a post in Firestore
+ */
+export const toggleLikePostInFirestore = async (postId: string, isLiked: boolean): Promise<void> => {
+  try {
+    const postRef = doc(db, 'posts', postId);
+    await updateDoc(postRef, {
+      likesCount: increment(isLiked ? 1 : -1)
+    });
+  } catch (err) {
+    console.warn('Like sync fallback:', err);
+  }
+};
+
+/**
+ * Adds comment to a post in Firestore
+ */
+export const addCommentInFirestore = async (postId: string, comment: Comment): Promise<void> => {
+  try {
+    const commentRef = doc(db, 'posts', postId, 'comments', comment.id);
+    await setDoc(commentRef, comment);
+    const postRef = doc(db, 'posts', postId);
+    await updateDoc(postRef, {
+      commentsCount: increment(1)
+    });
+  } catch (err) {
+    console.warn('Comment sync error:', err);
+  }
+};
+
+/**
+ * Real-time listener for comments of a post
+ */
+export const subscribeToPostComments = (postId: string, onUpdate: (comments: Comment[]) => void): (() => void) => {
+  const commentsQuery = query(collection(db, 'posts', postId, 'comments'), orderBy('createdAt', 'asc'), limit(100));
+  return onSnapshot(commentsQuery, (snapshot) => {
+    const list = snapshot.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    })) as Comment[];
+    onUpdate(list);
+  }, (err) => {
+    console.warn('Comments subscription warning:', err);
+  });
+};
+
+/**
+ * Submits a creator verification request to Firestore
+ */
+export const submitVerificationRequest = async (request: Partial<VerificationRequest>): Promise<void> => {
+  try {
+    const id = request.id || `verif_${Date.now()}`;
+    const reqRef = doc(db, 'verificationRequests', id);
+    await setDoc(reqRef, {
+      ...request,
+      id,
+      submittedAt: new Date().toISOString()
+    });
+  } catch (err) {
+    console.warn('Verification request save fallback:', err);
+  }
+};
+
+/**
+ * Submits content/user report to server and Firestore
+ */
+export const submitContentReport = async (report: Partial<ReportItem>): Promise<void> => {
+  try {
+    const id = report.id || `rep_${Date.now()}`;
+    await fetch(getApiUrl('/api/reports'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        reporterId: report.reporterId || 'anonymous_fan',
+        targetType: report.targetType || 'post',
+        targetId: report.targetId || 'unknown',
+        reason: report.reason || 'Non précisé'
+      })
+    });
+  } catch (err) {
+    console.warn('Report submission fallback:', err);
   }
 };
 

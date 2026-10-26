@@ -153,6 +153,43 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "userId", "type", "status"]
+    },
+    "footballMatch": {
+      "title": "FootballMatch",
+      "description": "Live and upcoming football fixtures with predictions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "league": { "type": "string", "maxLength": 100 },
+        "homeTeam": { "type": "string", "maxLength": 100 },
+        "awayTeam": { "type": "string", "maxLength": 100 },
+        "homeLogo": { "type": "string", "maxLength": 500 },
+        "awayLogo": { "type": "string", "maxLength": 500 },
+        "matchTime": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["upcoming", "live", "finished"] },
+        "homeScore": { "type": "number" },
+        "awayScore": { "type": "number" },
+        "aiPrediction": { "type": "string", "maxLength": 500 }
+      },
+      "required": ["id", "league", "homeTeam", "awayTeam", "status"]
+    },
+    "prediction": {
+      "title": "Prediction",
+      "description": "User match prediction entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "matchId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 80 },
+        "predictedHome": { "type": "number" },
+        "predictedAway": { "type": "number" },
+        "wagerCoins": { "type": "number" },
+        "pointsAwarded": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "won", "lost"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "matchId", "userId", "predictedHome", "predictedAway"]
     }
   },
   "firestore": {
@@ -171,6 +208,14 @@
     "/posts/{postId}/comments/{commentId}": {
       "schema": "comment",
       "description": "Comments attached to posts"
+    },
+    "/matches/{matchId}": {
+      "schema": "footballMatch",
+      "description": "Football match fixtures"
+    },
+    "/predictions/{predictionId}": {
+      "schema": "prediction",
+      "description": "User match predictions"
     },
     "/conversations/{conversationId}": {
       "schema": "conversation",
