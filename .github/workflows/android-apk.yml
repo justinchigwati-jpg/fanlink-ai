@@ -1,9 +1,7 @@
-name: Build FanLink AI Android APK
+name: Build FanLink AI Android Packages
 
 on:
   push:
-    branches: [ "main", "master" ]
-  pull_request:
     branches: [ "main", "master" ]
   workflow_dispatch:
 
@@ -11,8 +9,8 @@ permissions:
   contents: read
 
 jobs:
-  build-apk:
-    name: Compile Android Debug APK
+  build-android:
+    name: Build Android Release & Debug Packages
     runs-on: ubuntu-latest
 
     steps:
@@ -42,19 +40,34 @@ jobs:
       - name: Make Gradle Wrapper Executable
         run: chmod +x ./android/gradlew
 
-      - name: Build Debug APK with Gradle
-        working-directory: ./android
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
-
-      - name: Locate and Verify APK
+      - name: Generate Release Signing Keystore
+        working-directory: ./android/app
         run: |
-          echo "Checking generated APK:"
-          ls -lh android/app/build/outputs/apk/debug/app-debug.apk
+          keytool -genkeypair -v \
+            -keystore release.keystore \
+            -alias fanlink \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass fanlinkai2025 \
+            -keypass fanlinkai2025 \
+            -dname "CN=FanLink AI, OU=Mobile, O=FanLink AI, L=Paris, C=FR"
 
-      - name: Upload APK Artifact
+      - name: Build Debug & Official Release Packages with Gradle
+        working-directory: ./android
+        run: |
+          ./gradlew assembleDebug assembleRelease bundleRelease --no-daemon --stacktrace
+
+      - name: Upload Official Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: FanLink-AI-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
-          retention-days: 14
+          name: FanLink-AI-Official-Release-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+      - name: Upload Google Play Store AAB Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: FanLink-AI-GooglePlay-AAB
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
