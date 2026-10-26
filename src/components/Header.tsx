@@ -7,7 +7,8 @@ import {
   Sparkles, 
   Tv, 
   ShieldCheck,
-  Settings 
+  Settings,
+  User 
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCurrencyLang } from '../context/CurrencyLangContext';
@@ -40,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
   searchQuery,
   setSearchQuery
 }) => {
-  const { userProfile, currentUser, isAdmin } = useAuth();
+  const { userProfile, currentUser, isAdmin, isGuestSession } = useAuth();
   const { language, setLanguage } = useCurrencyLang();
 
   const handleLangToggle = () => {
@@ -181,15 +182,27 @@ export const Header: React.FC<HeaderProps> = ({
             <Settings className="w-4 h-4" />
           </button>
 
+          {/* Guest / Not logged in Sign-in Call To Action */}
+          {(!currentUser || isGuestSession) && (
+            <button
+              onClick={onOpenAuth}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#00E676] to-[#00B86B] text-[#030604] font-black text-xs hover:brightness-110 shadow-md shadow-[#00E676]/20 transition"
+              title="Créer un compte ou se connecter"
+            >
+              <User className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">Connexion</span>
+            </button>
+          )}
+
           {/* Profile Avatar */}
           <button
             onClick={() => onSelectTab('profile')}
             className="relative p-0.5 rounded-full border border-[#00E676]/40 hover:border-[#00E676] transition flex-shrink-0"
-            title={userProfile?.displayName}
+            title={userProfile?.displayName || 'Mon Profil'}
           >
             <img
               src={userProfile?.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
-              alt={userProfile?.displayName}
+              alt={userProfile?.displayName || 'Profil'}
               className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover"
             />
             {userProfile?.isVerified && (

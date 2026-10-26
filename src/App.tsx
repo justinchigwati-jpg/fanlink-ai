@@ -24,6 +24,9 @@ import { VerificationModal } from './components/VerificationModal';
 import { TermsPrivacyModal } from './components/TermsPrivacyModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { MatchCenterView } from './components/MatchCenterView';
+import { Loader2, Sparkles } from 'lucide-react';
+import { WelcomeAuthScreen } from './components/WelcomeAuthScreen';
+import { FanLinkLogo } from './components/FanLinkLogo';
 import { 
   INITIAL_POSTS, 
   SEED_CREATORS,
@@ -38,7 +41,7 @@ import { Post, Comment, UserProfile, VerificationRequest } from './types';
 import { testFirestoreConnection } from './firebase';
 
 function MainApp() {
-  const { userProfile, isAdmin } = useAuth();
+  const { currentUser, userProfile, isAdmin, loading, isGuestSession } = useAuth();
 
   // Navigation State
   const [currentTab, setCurrentTab] = useState<string>('feed');
@@ -194,11 +197,46 @@ function MainApp() {
     setCurrentTab('messages');
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#030604] flex flex-col items-center justify-center p-6 text-white text-center">
+        <FanLinkLogo size="lg" showWordmark={true} showTagline={true} />
+        <div className="mt-6 flex items-center gap-2 text-xs text-[#00E676] font-bold">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span>Chargement sécurisé de FanLink AI...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Welcome / Authentication Gate: if user is not logged in and not in guest exploration
+  if (!currentUser && !isGuestSession && !userProfile) {
+    return <WelcomeAuthScreen />;
+  }
+
   return (
     <div className="min-h-screen bg-[#030604] text-white flex flex-col font-sans selection:bg-[#00E676] selection:text-black">
       
       {/* Offline Alert Indicator */}
       <OfflineIndicator />
+
+      {/* Guest Mode Discovery Bar */}
+      {isGuestSession && !currentUser && (
+        <div className="bg-gradient-to-r from-[#00E676]/20 via-[#0A100D] to-[#00E676]/10 border-b border-[#00E676]/30 px-3 py-2 text-xs text-white flex items-center justify-between gap-2 z-50">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#00E676] flex-shrink-0" />
+            <span className="text-[11px] sm:text-xs text-[#A8B5AE]">
+              Mode Découverte : <strong className="text-white">Créez votre compte officiel</strong> pour conserver vos FanCoins et interagir avec les stars.
+            </span>
+          </div>
+          <button
+            onClick={() => setIsAuthOpen(true)}
+            className="px-3 py-1 rounded-full bg-[#00E676] text-[#030604] font-black text-[11px] hover:bg-[#00B86B] transition shadow flex-shrink-0"
+          >
+            Créer mon compte
+          </button>
+        </div>
+      )}
 
       {/* Global Header */}
       <Header

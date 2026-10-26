@@ -19,6 +19,8 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   loading: boolean;
   isAdmin: boolean;
+  isGuestSession: boolean;
+  continueAsGuest: () => void;
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   registerWithEmail: (email: string, pass: string, name: string, username: string, type: AccountType) => Promise<void>;
@@ -32,7 +34,7 @@ interface AuthContextType {
   setDemoUser: (persona: 'fan' | 'creator' | 'admin') => void;
 }
 
-const DEMO_USERS: Record<string, UserProfile> = {
+export const DEMO_USERS: Record<string, UserProfile> = {
   fan: {
     id: 'demo_fan_101',
     email: 'fan.paris@fanlink.ai',
@@ -105,12 +107,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  
+  // Real user profile: only restore valid saved profiles that are not the hardcoded demo placeholder
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
     const saved = localStorage.getItem('fanlink_user_profile');
-    return saved ? JSON.parse(saved) : DEMO_USERS.fan;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.id && parsed.id !== 'demo_fan_101') {
+          return parsed;
+        }
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   });
+
   const [loading, setLoading] = useState(true);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [isGuestSession, setIsGuestSession] = useState<boolean>(() => {
+    return localStorage.getItem('fanlink_guest_mode') === 'true';
+  });
 
   // Sync Firebase Auth state
   useEffect(() => {
@@ -118,6 +136,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCurrentUser(firebaseUser);
       if (firebaseUser) {
         setIsDemoMode(false);
+        setIsGuestSession(false);
+        localStorage.removeItem('fanlink_guest_mode');
+        
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         try {
           const snapshot = await getDoc(userDocRef);
@@ -142,14 +163,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               followersCount: 0,
               followingCount: 0,
               postsCount: 0,
-              coinsBalance: 100, // Welcome gift of 100 FanCoins!
+              coinsBalance: 150, // Welcome gift of 150 FanCoins!
               creatorEarningsEur: 0,
               pendingEarningsEur: 0,
               preferredLanguage: 'fr',
               preferredCurrency: 'EUR',
               createdAt: new Date().toISOString()
             };
-            await setDoc(userDocRef, newProfile);
+            await setDoc(userDocRef, newProfile).catch(console.warn);
             setUserProfile(newProfile);
             localStorage.setItem('fanlink_user_profile', JSON.stringify(newProfile));
           }
@@ -157,9 +178,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.warn('Firestore initial fetch fallback:', err);
         }
       } else {
-        // Unauthenticated - keep demo user active so app is interactive
-        if (!userProfile) {
-          setUserProfile(DEMO_USERS.fan);
+        // If not in an active guest session, userProfile is null (shows Auth Gate)
+        const isGuest = localStorage.getItem('fanlink_guest_mode') === 'true';
+        if (!isGuest) {
+          setUserProfile(null);
         }
       }
       setLoading(false);
@@ -168,9 +190,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
+  const continueAsGuest = () => {
+    const guestId = `guest_${Math.random().toString(36).substring(2, 9)}`;
+    const guestProfile: UserProfile = {
+      id: guestId,
+      email: 'invite@fanlink.ai',
+      displayName: 'Invité Découverte',
+      username: `fan_${Math.floor(Math.random() * 9000 + 1000)}`,
+      accountType: 'fan',
+      bio: 'Visiteur en mode découverte sur FanLink AI.',
+      country: 'France',
+      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80',
+      bannerUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
+      isVerified: false,
+      badge: 'active_fan',
+      followersCount: 0,
+      followingCount: 0,
+      postsCount: 0,
+      coinsBalance: 50,
+      creatorEarningsEur: 0,
+      pendingEarningsEur: 0,
+      preferredLanguage: 'fr',
+      preferredCurrency: 'EUR',
+      createdAt: new Date().toISOString()
+    };
+    setUserProfile(guestProfile);
+    setIsGuestSession(true);
+    localStorage.setItem('fanlink_guest_mode', 'true');
+    localStorage.setItem('fanlink_user_profile', JSON.stringify(guestProfile));
+  };
+
   const loginWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
+      setIsGuestSession(false);
+      localStorage.removeItem('fanlink_guest_mode');
       await signInWithPopup(auth, provider);
     } catch (error) {
       console.error('Google Sign In failed:', error);
@@ -180,6 +234,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithEmail = async (email: string, pass: string) => {
     try {
+      setIsGuestSession(false);
+      localStorage.removeItem('fanlink_guest_mode');
       await signInWithEmailAndPassword(auth, email, pass);
     } catch (error) {
       console.error('Email login error:', error);
@@ -189,13 +245,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const registerWithEmail = async (email: string, pass: string, name: string, username: string, type: AccountType) => {
     try {
+      setIsGuestSession(false);
+      localStorage.removeItem('fanlink_guest_mode');
+      
       const cred = await createUserWithEmailAndPassword(auth, email, pass);
       const uid = cred.user.uid;
+      const cleanUsername = username.toLowerCase().replace(/[^a-z0-9_]/g, '');
+
       const newProfile: UserProfile = {
         id: uid,
         email,
         displayName: name,
-        username: username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
+        username: cleanUsername,
         accountType: type,
         bio: type === 'creator' || type === 'artist' || type === 'athlete' 
           ? 'Créateur certifiable sur FanLink AI.' 
@@ -203,8 +264,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         country: 'France',
         avatarUrl: `https://images.unsplash.com/photo-${1534528741775 + Math.floor(Math.random() * 500)}?w=200&auto=format&fit=crop&q=80`,
         bannerUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
-        isVerified: false,
-        badge: type === 'creator' ? 'none' : 'active_fan',
+        isVerified: email === 'justinchigwati@gmail.com',
+        badge: email === 'justinchigwati@gmail.com' ? 'star_verified' : (type === 'creator' ? 'none' : 'active_fan'),
         followersCount: 0,
         followingCount: 0,
         postsCount: 0,
@@ -215,7 +276,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         preferredCurrency: 'EUR',
         createdAt: new Date().toISOString()
       };
-      await setDoc(doc(db, 'users', uid), newProfile);
+
+      try {
+        await setDoc(doc(db, 'users', uid), newProfile);
+      } catch (firestoreErr) {
+        console.warn('Firestore setDoc user profile warning:', firestoreErr);
+      }
+
       setUserProfile(newProfile);
       localStorage.setItem('fanlink_user_profile', JSON.stringify(newProfile));
     } catch (error) {
@@ -250,7 +317,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         followersCount: 0,
         followingCount: 0,
         postsCount: 0,
-        coinsBalance: 200, // Gift of 200 FanCoins for rapid testing
+        coinsBalance: 150,
         creatorEarningsEur: 0,
         pendingEarningsEur: 0,
         preferredLanguage: 'fr',
@@ -277,10 +344,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    await signOut(auth);
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.warn('SignOut warning:', e);
+    }
     setCurrentUser(null);
-    setUserProfile(DEMO_USERS.fan);
+    setUserProfile(null);
+    setIsGuestSession(false);
+    setIsDemoMode(false);
     localStorage.removeItem('fanlink_user_profile');
+    localStorage.removeItem('fanlink_guest_mode');
   };
 
   const updateProfileData = async (updates: Partial<UserProfile>) => {
@@ -340,6 +414,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       userProfile,
       loading,
       isAdmin,
+      isGuestSession,
+      continueAsGuest,
       loginWithGoogle,
       loginWithEmail,
       registerWithEmail,
