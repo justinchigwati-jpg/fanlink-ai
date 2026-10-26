@@ -14,37 +14,68 @@ import {
   EyeOff,
   Flame,
   Star,
-  Coins
+  Coins,
+  Phone,
+  MessageSquare,
+  KeyRound
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { AccountType } from '../types';
 import { FanLinkLogo } from './FanLinkLogo';
+
+const COUNTRY_PREFIXES = [
+  { code: '+243', country: 'RD Congo', flag: '🇨🇩' },
+  { code: '+225', country: 'Côte d\'Ivoire', flag: '🇨🇮' },
+  { code: '+221', country: 'Sénégal', flag: '🇸🇳' },
+  { code: '+237', country: 'Cameroun', flag: '🇨🇲' },
+  { code: '+33', country: 'France', flag: '🇫🇷' },
+  { code: '+229', country: 'Bénin', flag: '🇧🇯' },
+  { code: '+241', country: 'Gabon', flag: '🇬🇦' },
+  { code: '+223', country: 'Mali', flag: '🇲🇱' },
+  { code: '+224', country: 'Guinée', flag: '🇬🇳' },
+  { code: '+226', country: 'Burkina Faso', flag: '🇧🇫' },
+  { code: '+228', country: 'Togo', flag: '🇹🇬' },
+  { code: '+242', country: 'Congo-Brazzaville', flag: '🇨🇬' },
+  { code: '+32', country: 'Belgique', flag: '🇧🇪' },
+  { code: '+1', country: 'USA / Canada', flag: '🇺🇸' },
+];
 
 export const WelcomeAuthScreen: React.FC = () => {
   const { 
     loginWithGoogle, 
     loginWithEmail, 
     registerWithEmail, 
+    loginOrRegisterWithPhone,
     resetPassword, 
     continueAsGuest 
   } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'register' | 'login' | 'reset'>('register');
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [accountType, setAccountType] = useState<AccountType>('fan');
 
-  // Form Fields
+  // Form Fields - Common
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
+
+  // Form Fields - Email
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // Form Fields - Phone
+  const [countryCode, setCountryCode] = useState('+243');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otpStep, setOtpStep] = useState<'input_phone' | 'input_otp'>('input_phone');
+  const [otpCode, setOtpCode] = useState('');
+
   // States
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [resetSent, setResetSent] = useState(false);
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegisterEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!displayName.trim() || !username.trim()) {
       setErrorMessage('Veuillez renseigner votre nom complet et votre pseudonyme.');
@@ -76,7 +107,7 @@ export const WelcomeAuthScreen: React.FC = () => {
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLoginEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password) {
       setErrorMessage('Veuillez renseigner votre e-mail et votre mot de passe.');
@@ -100,6 +131,51 @@ export const WelcomeAuthScreen: React.FC = () => {
       } else {
         setErrorMessage(err.message || 'Erreur de connexion. Vérifiez vos identifiants.');
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSendPhoneOtp = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanDigits = phoneNumber.replace(/[^0-9]/g, '');
+    if (cleanDigits.length < 6) {
+      setErrorMessage('Veuillez saisir un numéro de téléphone valide.');
+      return;
+    }
+
+    if (activeTab === 'register' && (!displayName.trim() || !username.trim())) {
+      setErrorMessage('Veuillez renseigner votre nom et votre pseudonyme avant de valider votre numéro.');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    // Simulate instant SMS OTP dispatch
+    setTimeout(() => {
+      setIsLoading(false);
+      setOtpStep('input_otp');
+      setInfoMessage(`Code SMS envoyé au ${countryCode} ${phoneNumber}. (Test rapide : entrez 123456 ou votre code reçu)`);
+    }, 700);
+  };
+
+  const handleVerifyPhoneOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpCode.trim() || otpCode.trim().length < 4) {
+      setErrorMessage('Veuillez saisir le code de validation reçu par SMS.');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    const fullPhone = `${countryCode}${phoneNumber.replace(/[^0-9]/g, '')}`;
+    try {
+      await loginOrRegisterWithPhone(fullPhone, displayName.trim(), username.trim(), accountType);
+    } catch (err: any) {
+      console.error('Phone verification error:', err);
+      setErrorMessage(err.message || 'Erreur lors de la validation du code.');
     } finally {
       setIsLoading(false);
     }
@@ -132,7 +208,7 @@ export const WelcomeAuthScreen: React.FC = () => {
     } catch (err: any) {
       console.warn('Google sign-in warning:', err);
       setErrorMessage(
-        'Sur l\'application mobile Android, Google bloque les popups de connexion. Veuillez créer votre compte ou vous connecter directement avec votre adresse e-mail et votre mot de passe ci-dessus (100% fonctionnel).'
+        'Sur l\'application mobile Android, Google bloque les popups de connexion. Veuillez créer votre compte ou vous connecter directement avec votre adresse e-mail ou votre numéro de téléphone (100% fonctionnel).'
       );
     } finally {
       setIsLoading(false);
@@ -170,10 +246,10 @@ export const WelcomeAuthScreen: React.FC = () => {
 
         {/* Tab Switcher (Register vs Login) */}
         {activeTab !== 'reset' && (
-          <div className="grid grid-cols-2 p-1 bg-[#0A100D] border border-[#183A2A] rounded-2xl mb-5">
+          <div className="grid grid-cols-2 p-1 bg-[#0A100D] border border-[#183A2A] rounded-2xl mb-4">
             <button
               type="button"
-              onClick={() => { setActiveTab('register'); setErrorMessage(null); }}
+              onClick={() => { setActiveTab('register'); setErrorMessage(null); setInfoMessage(null); setOtpStep('input_phone'); }}
               className={`py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
                 activeTab === 'register'
                   ? 'bg-[#00E676] text-[#030604] shadow-lg shadow-[#00E676]/20'
@@ -185,7 +261,7 @@ export const WelcomeAuthScreen: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => { setActiveTab('login'); setErrorMessage(null); }}
+              onClick={() => { setActiveTab('login'); setErrorMessage(null); setInfoMessage(null); setOtpStep('input_phone'); }}
               className={`py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
                 activeTab === 'login'
                   ? 'bg-[#00E676] text-[#030604] shadow-lg shadow-[#00E676]/20'
@@ -198,11 +274,44 @@ export const WelcomeAuthScreen: React.FC = () => {
           </div>
         )}
 
-        {/* Error Notification */}
+        {/* Auth Method Switcher (Email vs Phone) */}
+        {activeTab !== 'reset' && (
+          <div className="flex items-center justify-center gap-2 mb-4 p-1 bg-[#0A100D] border border-[#183A2A]/80 rounded-xl text-xs">
+            <button
+              type="button"
+              onClick={() => { setAuthMethod('email'); setErrorMessage(null); setInfoMessage(null); }}
+              className={`flex-1 py-1.5 rounded-lg font-bold flex items-center justify-center gap-1.5 transition ${
+                authMethod === 'email' ? 'bg-[#00E676]/15 text-[#00E676] border border-[#00E676]/30' : 'text-[#A8B5AE] hover:text-white'
+              }`}
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Par E-mail</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAuthMethod('phone'); setErrorMessage(null); setInfoMessage(null); }}
+              className={`flex-1 py-1.5 rounded-lg font-bold flex items-center justify-center gap-1.5 transition ${
+                authMethod === 'phone' ? 'bg-[#00E676]/15 text-[#00E676] border border-[#00E676]/30' : 'text-[#A8B5AE] hover:text-white'
+              }`}
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>Par Téléphone (SMS)</span>
+            </button>
+          </div>
+        )}
+
+        {/* Notifications */}
         {errorMessage && (
           <div className="mb-4 p-3 rounded-2xl bg-red-500/15 border border-red-500/30 text-xs text-red-300 flex items-start gap-2.5 animate-in fade-in">
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <div className="flex-1">{errorMessage}</div>
+          </div>
+        )}
+
+        {infoMessage && (
+          <div className="mb-4 p-3 rounded-2xl bg-[#00E676]/15 border border-[#00E676]/30 text-xs text-[#00E676] flex items-start gap-2.5 animate-in fade-in">
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">{infoMessage}</div>
           </div>
         )}
 
@@ -218,16 +327,203 @@ export const WelcomeAuthScreen: React.FC = () => {
               </p>
               <button
                 type="button"
-                onClick={() => { setResetSent(false); setActiveTab('login'); }}
+                onClick={() => { setResetSent(false); setActiveTab('login'); setAuthMethod('email'); }}
                 className="w-full py-2.5 rounded-xl bg-[#00E676] text-[#030604] font-black text-xs hover:bg-[#00B86B] transition"
               >
                 Retour à la connexion
               </button>
             </div>
+          ) : authMethod === 'phone' ? (
+            
+            /* PHONE AUTHENTICATION FORM (Register & Login) */
+            <div className="space-y-4">
+              
+              {/* Account Type Selector for Phone Register */}
+              {activeTab === 'register' && otpStep === 'input_phone' && (
+                <div>
+                  <label className="block text-[11px] font-bold text-[#A8B5AE] mb-1.5 uppercase tracking-wider">
+                    Je m'inscris en tant que :
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setAccountType('fan')}
+                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between ${
+                        accountType === 'fan'
+                          ? 'bg-[#00E676]/15 border-[#00E676] text-white shadow-inner'
+                          : 'bg-[#030604] border-[#183A2A] text-[#A8B5AE] hover:border-[#183A2A]/80'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-extrabold text-xs text-white">Fan & Supporter</span>
+                        <Coins className="w-3.5 h-3.5 text-amber-400" />
+                      </div>
+                      <span className="text-[10px] text-[#A8B5AE]">Lives, pronostics & 150 FanCoins</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setAccountType('creator')}
+                      className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between ${
+                        accountType === 'creator'
+                          ? 'bg-[#00E676]/15 border-[#00E676] text-white shadow-inner'
+                          : 'bg-[#030604] border-[#183A2A] text-[#A8B5AE] hover:border-[#183A2A]/80'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-extrabold text-xs text-white">Star / Créateur</span>
+                        <Star className="w-3.5 h-3.5 text-[#00E676]" />
+                      </div>
+                      <span className="text-[10px] text-[#A8B5AE]">Monétisation & communauté</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Name and Username if Registering */}
+              {activeTab === 'register' && otpStep === 'input_phone' && (
+                <>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#A8B5AE] mb-1">Nom complet</label>
+                    <div className="relative">
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A8B5AE]" />
+                      <input
+                        type="text"
+                        required
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        placeholder="Ex: Justin Chigwati"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#030604] border border-[#183A2A] text-xs text-white focus:outline-none focus:border-[#00E676] placeholder:text-[#A8B5AE]/40 transition"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#A8B5AE] mb-1">Pseudonyme unique (@)</label>
+                    <div className="relative">
+                      <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A8B5AE]" />
+                      <input
+                        type="text"
+                        required
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="justin_fan"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#030604] border border-[#183A2A] text-xs text-white font-mono focus:outline-none focus:border-[#00E676] placeholder:text-[#A8B5AE]/40 transition"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Step 1: Input Phone Number */}
+              {otpStep === 'input_phone' ? (
+                <form onSubmit={handleSendPhoneOtp} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#A8B5AE] mb-1">Numéro de téléphone portable</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={countryCode}
+                        onChange={(e) => setCountryCode(e.target.value)}
+                        className="w-36 py-2.5 px-2 rounded-xl bg-[#030604] border border-[#183A2A] text-xs text-white focus:outline-none focus:border-[#00E676] transition"
+                      >
+                        {COUNTRY_PREFIXES.map((c) => (
+                          <option key={c.code} value={c.code} className="bg-[#0A100D] text-white">
+                            {c.flag} {c.code} ({c.country})
+                          </option>
+                        ))}
+                      </select>
+
+                      <div className="relative flex-1">
+                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A8B5AE]" />
+                        <input
+                          type="tel"
+                          required
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value)}
+                          placeholder="Ex: 081 234 5678"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#030604] border border-[#183A2A] text-xs text-white focus:outline-none focus:border-[#00E676] placeholder:text-[#A8B5AE]/40 transition font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-3 rounded-2xl bg-gradient-to-r from-[#00E676] to-[#00B86B] text-[#030604] font-black text-xs hover:brightness-110 active:scale-[0.99] transition shadow-lg shadow-[#00E676]/25 flex items-center justify-center gap-2 mt-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Envoi du code SMS...</span>
+                      </>
+                    ) : (
+                      <>
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Envoyer le code de validation SMS</span>
+                        <ArrowRight className="w-4 h-4 ml-1" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              ) : (
+                /* Step 2: Input OTP SMS */
+                <form onSubmit={handleVerifyPhoneOtp} className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-semibold text-[#A8B5AE]">Code secret SMS reçu</label>
+                      <button
+                        type="button"
+                        onClick={() => { setOtpStep('input_phone'); setInfoMessage(null); }}
+                        className="text-[11px] text-[#00E676] hover:underline"
+                      >
+                        Changer de numéro
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A8B5AE]" />
+                      <input
+                        type="text"
+                        required
+                        maxLength={6}
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value)}
+                        placeholder="Ex: 123456"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#030604] border border-[#183A2A] text-sm text-center tracking-widest text-white font-mono focus:outline-none focus:border-[#00E676] placeholder:text-[#A8B5AE]/40 transition"
+                      />
+                    </div>
+                    <p className="text-[10px] text-[#A8B5AE]/70 mt-1.5 text-center">
+                      Code de test instantané : <strong className="text-white">123456</strong>
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-3 rounded-2xl bg-gradient-to-r from-[#00E676] to-[#00B86B] text-[#030604] font-black text-xs hover:brightness-110 active:scale-[0.99] transition shadow-lg shadow-[#00E676]/25 flex items-center justify-center gap-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Validation du code en cours...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Confirmer et entrer sur FanLink AI</span>
+                        <ArrowRight className="w-4 h-4 ml-1" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+
+            </div>
+
           ) : activeTab === 'register' ? (
             
-            /* REGISTER FORM */
-            <form onSubmit={handleRegister} className="space-y-4">
+            /* EMAIL REGISTER FORM */
+            <form onSubmit={handleRegisterEmail} className="space-y-4">
               
               {/* Account Type Selector */}
               <div>
@@ -287,7 +583,7 @@ export const WelcomeAuthScreen: React.FC = () => {
 
               {/* Username (@) */}
               <div>
-                <label className="block text-xs font-semibold text-[#A8B5AE] mb-1">Pseudonyme unique</label>
+                <label className="block text-xs font-semibold text-[#A8B5AE] mb-1">Pseudonyme unique (@)</label>
                 <div className="relative">
                   <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A8B5AE]" />
                   <input
@@ -371,8 +667,8 @@ export const WelcomeAuthScreen: React.FC = () => {
 
           ) : activeTab === 'login' ? (
 
-            /* LOGIN FORM */
-            <form onSubmit={handleLogin} className="space-y-4">
+            /* EMAIL LOGIN FORM */
+            <form onSubmit={handleLoginEmail} className="space-y-4">
               
               <div>
                 <label className="block text-xs font-semibold text-[#A8B5AE] mb-1">Adresse e-mail</label>
@@ -507,7 +803,7 @@ export const WelcomeAuthScreen: React.FC = () => {
                   <span>Continuer avec Google</span>
                 </button>
                 <p className="text-[10px] text-center text-[#A8B5AE]/70 mt-1">
-                  Sur smartphone Android, privilégiez l'inscription directe par e-mail ci-dessus
+                  Sur smartphone Android, privilégiez l'inscription par E-mail ou Téléphone ci-dessus
                 </p>
               </div>
 

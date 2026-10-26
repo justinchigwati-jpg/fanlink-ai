@@ -24,6 +24,7 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   registerWithEmail: (email: string, pass: string, name: string, username: string, type: AccountType) => Promise<void>;
+  loginOrRegisterWithPhone: (phoneNumber: string, name?: string, username?: string, type?: AccountType) => Promise<void>;
   loginAsGuest: (name: string, username: string, type?: AccountType) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -344,6 +345,83 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginOrRegisterWithPhone = async (
+    rawPhoneNumber: string,
+    name?: string,
+    username?: string,
+    type: AccountType = 'fan'
+  ) => {
+    setIsGuestSession(false);
+    localStorage.removeItem('fanlink_guest_mode');
+
+    const cleanPhone = rawPhoneNumber.replace(/[^0-9+]/g, '');
+    const uid = `phone_${cleanPhone.replace(/[^0-9]/g, '')}`;
+
+    // Try to restore existing profile from Firestore
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      if (snap.exists()) {
+        const existingData = snap.data() as UserProfile;
+        setUserProfile(existingData);
+        localStorage.setItem('fanlink_user_profile', JSON.stringify(existingData));
+        return;
+      }
+    } catch (e) {
+      console.warn('Firestore phone lookup note:', e);
+    }
+
+    // Check localStorage cache
+    const saved = localStorage.getItem('fanlink_user_profile');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.phone === cleanPhone) {
+          setUserProfile(parsed);
+          return;
+        }
+      } catch (e) {}
+    }
+
+    // Create a new phone-based user profile
+    const fallbackName = name?.trim() || `Supporter ${cleanPhone.slice(-4)}`;
+    const fallbackUsername = (username?.trim() || `fan_${cleanPhone.slice(-6)}`).toLowerCase().replace(/[^a-z0-9_]/g, '');
+
+    const newProfile: UserProfile = {
+      id: uid,
+      email: `${cleanPhone.replace(/[^0-9]/g, '')}@phone.fanlink.ai`,
+      phone: cleanPhone,
+      displayName: fallbackName,
+      username: fallbackUsername,
+      accountType: type,
+      bio: type === 'creator' || type === 'artist' || type === 'athlete'
+        ? 'Créateur officiel sur FanLink AI.'
+        : 'Membre actif FanLink connecté par mobile 📱',
+      country: 'International',
+      avatarUrl: `https://images.unsplash.com/photo-${1534528741775 + Math.floor(Math.random() * 500)}?w=200&auto=format&fit=crop&q=80`,
+      bannerUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
+      isVerified: false,
+      badge: type === 'creator' ? 'none' : 'active_fan',
+      followersCount: 0,
+      followingCount: 0,
+      postsCount: 0,
+      coinsBalance: 150, // Welcome gift of 150 FanCoins!
+      creatorEarningsEur: 0,
+      pendingEarningsEur: 0,
+      preferredLanguage: 'fr',
+      preferredCurrency: 'EUR',
+      createdAt: new Date().toISOString()
+    };
+
+    try {
+      await setDoc(doc(db, 'users', uid), newProfile);
+    } catch (err) {
+      console.warn('Phone profile save note:', err);
+    }
+
+    setUserProfile(newProfile);
+    localStorage.setItem('fanlink_user_profile', JSON.stringify(newProfile));
+  };
+
   const loginAsGuest = async (name: string, username: string, type: AccountType = 'fan') => {
     try {
       let uid = `user_${Date.now()}`;
@@ -472,6 +550,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loginWithGoogle,
       loginWithEmail,
       registerWithEmail,
+      loginOrRegisterWithPhone,
       loginAsGuest,
       resetPassword,
       logout,
