@@ -52,11 +52,11 @@ function MainApp() {
 
   // Core Data State
   const [posts, setPosts] = useState<Post[]>(() => {
-    const saved = localStorage.getItem('fanlink_posts_v2');
+    const saved = localStorage.getItem('fanlink_posts_v3');
     return saved ? JSON.parse(saved) : INITIAL_POSTS;
   });
   const [creators, setCreators] = useState<UserProfile[]>(() => {
-    const saved = localStorage.getItem('fanlink_creators_v2');
+    const saved = localStorage.getItem('fanlink_creators_v3');
     return saved ? JSON.parse(saved) : SEED_CREATORS;
   });
 
@@ -353,6 +353,8 @@ function MainApp() {
               setCurrentTab('activity-center');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
+            posts={posts}
+            onOpenCreate={() => setIsCreateOpen(true)}
           />
         )}
 

@@ -71,221 +71,119 @@ export const VIRTUAL_GIFTS: VirtualGift[] = [
   }
 ];
 
-// Curated Star Creators matching reference image mockup
+// Curated Realistic Community Starters
 export const SEED_CREATORS: UserProfile[] = [
   {
-    id: 'sarah_queen',
-    email: 'sarah.queen@fanlink.ai',
-    displayName: 'Sarah Queen',
-    username: 'sarah_queen',
+    id: 'fanlink_official',
+    email: 'contact@fanlink.ai',
+    displayName: 'FanLink AI Officiel',
+    username: 'fanlink',
     accountType: 'creator',
-    bio: 'Lifestyle, Music & Positive Vibes ✨ | FanLink Ambassador 💚 | Paris / Kinshasa',
-    country: 'France',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+    bio: 'Compte officiel de la plateforme FanLink AI ⚡ La communauté des passionnés de musique, sport et créateurs.',
+    country: 'International',
+    avatarUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&auto=format&fit=crop&q=80',
     bannerUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1000&auto=format&fit=crop&q=80',
     isVerified: true,
     badge: 'star_verified',
-    followersCount: 842000,
-    followingCount: 142,
-    postsCount: 284,
-    coinsBalance: 12500,
-    creatorEarningsEur: 5240.00,
-    pendingEarningsEur: 850.00,
+    followersCount: 18,
+    followingCount: 3,
+    postsCount: 1,
+    coinsBalance: 500,
+    creatorEarningsEur: 0,
+    pendingEarningsEur: 0,
     preferredLanguage: 'fr',
-    preferredCurrency: 'EUR',
-    createdAt: '2026-01-10T10:00:00.000Z'
+    preferredCurrency: 'USD',
+    createdAt: '2026-01-01T10:00:00.000Z'
+  },
+  {
+    id: 'sarah_music',
+    email: 'sarah@fanlink.ai',
+    displayName: 'Sarah Queen',
+    username: 'sarah_queen',
+    accountType: 'artist',
+    bio: 'Passionnée de chant & vibes acoustiques 🎵 | Kinshasa 🇨🇩',
+    country: 'RDC',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1000&auto=format&fit=crop&q=80',
+    isVerified: false,
+    badge: 'active_fan',
+    followersCount: 12,
+    followingCount: 8,
+    postsCount: 1,
+    coinsBalance: 200,
+    creatorEarningsEur: 0,
+    pendingEarningsEur: 0,
+    preferredLanguage: 'fr',
+    preferredCurrency: 'USD',
+    createdAt: '2026-02-01T10:00:00.000Z'
   },
   {
     id: 'mr_k',
     email: 'mrk@fanlink.ai',
     displayName: 'Mr. K',
     username: 'mrk_officiel',
-    accountType: 'artist',
-    bio: 'Créateur • Music • Dreamer | FanLink Family 💚 | Goma, RDC 🇨🇩',
+    accountType: 'creator',
+    bio: 'Créateur de contenu vidéo • Goma 🇨🇩',
     country: 'RDC',
     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
     bannerUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1000&auto=format&fit=crop&q=80',
-    isVerified: true,
-    badge: 'star_verified',
-    followersCount: 1200000,
-    followingCount: 252,
-    postsCount: 318,
-    coinsBalance: 24000,
-    creatorEarningsEur: 9800.00,
-    pendingEarningsEur: 1420.00,
+    isVerified: false,
+    badge: 'none',
+    followersCount: 9,
+    followingCount: 5,
+    postsCount: 1,
+    coinsBalance: 150,
+    creatorEarningsEur: 0,
+    pendingEarningsEur: 0,
     preferredLanguage: 'fr',
     preferredCurrency: 'USD',
-    createdAt: '2026-01-05T12:00:00.000Z'
-  },
-  {
-    id: 'fally_ipupa',
-    email: 'fally@fanlink.ai',
-    displayName: 'Fally Ipupa',
-    username: 'fallyipupa',
-    accountType: 'artist',
-    bio: 'Artiste International 🎵 | Tokooos Music World | Nouveau single disponible sur FanLink !',
-    country: 'RDC',
-    avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1000&auto=format&fit=crop&q=80',
-    isVerified: true,
-    badge: 'star_verified',
-    followersCount: 3400000,
-    followingCount: 48,
-    postsCount: 520,
-    coinsBalance: 45000,
-    creatorEarningsEur: 28400.00,
-    pendingEarningsEur: 3200.00,
-    preferredLanguage: 'fr',
-    preferredCurrency: 'USD',
-    createdAt: '2026-01-01T08:00:00.000Z'
-  },
-  {
-    id: 'gaz_mawete',
-    email: 'gaz.mawete@fanlink.ai',
-    displayName: 'Gaz Mawete',
-    username: 'gaz_mawete',
-    accountType: 'artist',
-    bio: 'Chanteur, auteur-compositeur & performer 🎤 | En direct tous les mercredis avec la communauté.',
-    country: 'RDC',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1000&auto=format&fit=crop&q=80',
-    isVerified: true,
-    badge: 'star_verified',
-    followersCount: 980000,
-    followingCount: 85,
-    postsCount: 195,
-    coinsBalance: 9800,
-    creatorEarningsEur: 4200.00,
-    pendingEarningsEur: 680.00,
-    preferredLanguage: 'fr',
-    preferredCurrency: 'USD',
-    createdAt: '2026-01-15T14:00:00.000Z'
-  },
-  {
-    id: 'nana_b',
-    email: 'nana.b@fanlink.ai',
-    displayName: 'Nana B.',
-    username: 'nana_b',
-    accountType: 'creator',
-    bio: 'Mode, Beauté & Tendance Fashion Week 💄 | Directs backstage & styling exclusifs.',
-    country: 'Côte d\'Ivoire',
-    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1000&auto=format&fit=crop&q=80',
-    isVerified: true,
-    badge: 'star_verified',
-    followersCount: 750000,
-    followingCount: 130,
-    postsCount: 412,
-    coinsBalance: 15400,
-    creatorEarningsEur: 6300.00,
-    pendingEarningsEur: 920.00,
-    preferredLanguage: 'fr',
-    preferredCurrency: 'XOF',
-    createdAt: '2026-01-20T16:00:00.000Z'
-  },
-  {
-    id: 'lamine_yamal',
-    email: 'lamine.yamal@fanlink.ai',
-    displayName: 'Lamine Yamal',
-    username: 'lamine_yamal',
-    accountType: 'athlete',
-    bio: 'Footballeur Professionnel FC Barcelone & Espagne ⚽ | Visca Barça ! ❤️💙',
-    country: 'Espagne',
-    avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&auto=format&fit=crop&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1000&auto=format&fit=crop&q=80',
-    isVerified: true,
-    badge: 'star_verified',
-    followersCount: 18500000,
-    followingCount: 94,
-    postsCount: 142,
-    coinsBalance: 82000,
-    creatorEarningsEur: 45000.00,
-    pendingEarningsEur: 5000.00,
-    preferredLanguage: 'es',
-    preferredCurrency: 'EUR',
-    createdAt: '2026-01-02T10:00:00.000Z'
+    createdAt: '2026-02-10T12:00:00.000Z'
   }
 ];
 
-// Rich Posts matching reference mockups
+// Authentic Starter Community Posts
 export const INITIAL_POSTS: Post[] = [
   {
+    id: 'post_fanlink_welcome',
+    authorId: 'fanlink_official',
+    authorName: 'FanLink AI Officiel',
+    authorUsername: 'fanlink',
+    authorAvatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&auto=format&fit=crop&q=80',
+    authorBadge: 'star_verified',
+    authorVerified: true,
+    content: 'Bienvenue sur FanLink AI ! 💚 Connectez-vous avec vos créateurs préférés, publiez vos moments forts et profitez de l\'espace pronostics et directs.',
+    mediaType: 'image',
+    mediaUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1000&auto=format&fit=crop&q=80',
+    tags: ['FanLink', 'Bienvenue', 'Communaute'],
+    likesCount: 5,
+    commentsCount: 1,
+    isExclusive: false,
+    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+    likedByCurrentUser: false,
+    savedByCurrentUser: false
+  },
+  {
     id: 'post_sarah_01',
-    authorId: 'sarah_queen',
+    authorId: 'sarah_music',
     authorName: 'Sarah Queen',
     authorUsername: 'sarah_queen',
     authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
-    authorBadge: 'star_verified',
-    authorVerified: true,
-    content: 'La vie est belle quand on fait ce qu\'on aime... 💚🔥 #FanLink #FansStarsTogether #PositiveVibes',
+    authorBadge: 'none',
+    authorVerified: false,
+    content: 'Session acoustique au studio aujourd\'hui ! Qu\'aimeriez-vous écouter lors du prochain direct ? 🎵',
     mediaType: 'image',
     mediaUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1000&auto=format&fit=crop&q=80',
-    tags: ['FanLink', 'GoodVibes', 'MusicLife', 'Creator'],
-    likesCount: 128600,
-    commentsCount: 3842,
+    tags: ['Musique', 'Acoustique', 'Studio'],
+    likesCount: 3,
+    commentsCount: 1,
     isExclusive: false,
-    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-    likedByCurrentUser: true,
-    savedByCurrentUser: true
-  },
-  {
-    id: 'post_mrk_01',
-    authorId: 'mr_k',
-    authorName: 'Mr. K',
-    authorUsername: 'mrk_officiel',
-    authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
-    authorBadge: 'star_verified',
-    authorVerified: true,
-    content: 'Coulisses du tournage à Goma 🇨🇩 ! Un nouveau projet musical exceptionnel qui unit nos forces. Merci à toute la FanLink Family pour l\'amour inconditionnel !',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1000&auto=format&fit=crop&q=80',
-    tags: ['Musique', 'Goma', 'FanLinkFamily', 'AfricaRising'],
-    likesCount: 95400,
-    commentsCount: 2150,
-    isExclusive: false,
-    createdAt: new Date(Date.now() - 3600000 * 6).toISOString(),
-    likedByCurrentUser: false
-  },
-  {
-    id: 'post_fally_01',
-    authorId: 'fally_ipupa',
-    authorName: 'Fally Ipupa',
-    authorUsername: 'fallyipupa',
-    authorAvatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80',
-    authorBadge: 'star_verified',
-    authorVerified: true,
-    content: 'Concert géant en préparation ! ⚡ Session live acoustique exclusive réservée aux membres VIP FanLink ce vendredi soir. Wapi team FanLink ? 🔥',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1000&auto=format&fit=crop&q=80',
-    tags: ['Tokooos', 'LiveConcert', 'FanLinkVIP', 'Musique'],
-    likesCount: 245000,
-    commentsCount: 6120,
-    isExclusive: true,
-    exclusivePriceCoins: 50,
-    createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
-    likedByCurrentUser: false
-  },
-  {
-    id: 'post_lamine_01',
-    authorId: 'lamine_yamal',
-    authorName: 'Lamine Yamal',
-    authorUsername: 'lamine_yamal',
-    authorAvatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&auto=format&fit=crop&q=80',
-    authorBadge: 'star_verified',
-    authorVerified: true,
-    content: 'Focus total pour le prochain choc du week-end. Le travail et la passion ne s\'arrêtent jamais. Visca Barça ! ❤️💙',
-    mediaType: 'image',
-    mediaUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1000&auto=format&fit=crop&q=80',
-    tags: ['FCBarcelona', 'LaLiga', 'Football', 'LamineYamal'],
-    likesCount: 3100000,
-    commentsCount: 42100,
-    isExclusive: false,
-    createdAt: new Date(Date.now() - 3600000 * 20).toISOString(),
-    likedByCurrentUser: true
+    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+    likedByCurrentUser: false,
+    savedByCurrentUser: false
   }
 ];
 
-// Active Live sessions matching reference mockup
+// Active Live sessions
 export interface LiveSession {
   id: string;
   creatorId: string;
@@ -301,44 +199,20 @@ export interface LiveSession {
 
 export const ACTIVE_LIVES: LiveSession[] = [
   {
-    id: 'live_nana',
-    creatorId: 'nana_b',
-    creatorName: 'Nana B.',
-    creatorUsername: 'nana_b',
-    creatorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80',
-    viewers: '25,4K',
-    viewersCount: 25400,
-    category: 'Mode & Lifestyle',
-    title: 'Backstage Fashion Week & Tendance 2026',
-    thumbnail: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&auto=format&fit=crop&q=80'
-  },
-  {
-    id: 'live_fally',
-    creatorId: 'fally_ipupa',
-    creatorName: 'Fally Ipupa',
-    creatorUsername: 'fallyipupa',
-    creatorAvatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&auto=format&fit=crop&q=80',
-    viewers: '12,1K',
-    viewersCount: 12100,
+    id: 'live_sarah',
+    creatorId: 'sarah_music',
+    creatorName: 'Sarah Queen',
+    creatorUsername: 'sarah_queen',
+    creatorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
+    viewers: '5 spectateurs',
+    viewersCount: 5,
     category: 'Musique',
-    title: 'Répétition live au studio avec les musiciens',
+    title: 'Session Live Acoustique & Échange',
     thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80'
-  },
-  {
-    id: 'live_gaz',
-    creatorId: 'gaz_mawete',
-    creatorName: 'Gaz Mawete',
-    creatorUsername: 'gaz_mawete',
-    creatorAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80',
-    viewers: '8,9K',
-    viewersCount: 8900,
-    category: 'Musique',
-    title: 'Session Q&A & Écoute de prods inédites',
-    thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80'
   }
 ];
 
-// Discover Trending Grid Items matching mockup Screen 4
+// Discover Trending Grid Items matching community exploration
 export interface DiscoverTrendingItem {
   id: string;
   category: 'Musique' | 'Sport' | 'Gaming' | 'Mode';
@@ -352,158 +226,63 @@ export const DISCOVER_TRENDING_ITEMS: DiscoverTrendingItem[] = [
   {
     id: 'disc_1',
     category: 'Musique',
-    views: '2,4M',
-    title: 'Concert Fally & Tokooos Band Live',
-    creatorName: 'Fally Ipupa',
+    views: '124 vues',
+    title: 'Découvertes acoustiques en direct',
+    creatorName: 'Sarah Queen',
     imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80'
   },
   {
     id: 'disc_2',
     category: 'Sport',
-    views: '3,1M',
-    title: 'Lamine Yamal dribbles et buts légendaires',
-    creatorName: 'Lamine Yamal',
+    views: '88 vues',
+    title: 'Entraînement et préparation de match',
+    creatorName: 'FanLink Sport',
     imageUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop&q=80'
   },
   {
     id: 'disc_3',
     category: 'Gaming',
-    views: '890K',
-    title: 'Finales Coupe d\'Afrique E-Sport',
-    creatorName: 'Tiago Stream',
+    views: '54 vues',
+    title: 'Session découverte nouveaux jeux',
+    creatorName: 'Community Play',
     imageUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80'
   },
   {
     id: 'disc_4',
     category: 'Mode',
-    views: '1,2M',
-    title: 'Défilé Haute Couture & Afro-Futurisme',
-    creatorName: 'Nana B.',
+    views: '76 vues',
+    title: 'Tendances et styles de la semaine',
+    creatorName: 'Créateurs Mode',
     imageUrl: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&auto=format&fit=crop&q=80'
   }
 ];
 
 // Conversations matching reference image 2 Screen 6
+// Authentic Official Conversations
 export const INITIAL_CONVERSATIONS: Conversation[] = [
   {
-    id: 'conv_sarah',
-    participantId: 'sarah_queen',
-    participantName: 'Sarah Queen',
-    participantUsername: 'sarah_queen',
-    participantAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
+    id: 'conv_fanlink_team',
+    participantId: 'fanlink_official',
+    participantName: 'Équipe FanLink AI',
+    participantUsername: 'fanlink_team',
+    participantAvatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=80',
     participantBadge: 'star_verified',
-    lastMessage: 'Merci beaucoup 💚',
-    lastMessageTime: '2 min',
-    unreadCount: 1
-  },
-  {
-    id: 'conv_fally',
-    participantId: 'fally_ipupa',
-    participantName: 'Fally Ipupa',
-    participantUsername: 'fallyipupa',
-    participantAvatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&auto=format&fit=crop&q=80',
-    participantBadge: 'star_verified',
-    lastMessage: 'Wapi team FanLink ? 🔥',
-    lastMessageTime: '15 min',
-    unreadCount: 0
-  },
-  {
-    id: 'conv_gaz',
-    participantId: 'gaz_mawete',
-    participantName: 'Gaz Mawete',
-    participantUsername: 'gaz_mawete',
-    participantAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80',
-    participantBadge: 'star_verified',
-    lastMessage: 'Trop fort frèro !',
-    lastMessageTime: '32 min',
-    unreadCount: 0
-  },
-  {
-    id: 'conv_innocent',
-    participantId: 'innocent_star',
-    participantName: 'Innocent',
-    participantUsername: 'innocent_music',
-    participantAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80',
-    participantBadge: 'star_verified',
-    lastMessage: 'On se voit demain',
-    lastMessageTime: '2 h',
-    unreadCount: 0
-  },
-  {
-    id: 'conv_nana',
-    participantId: 'nana_baby',
-    participantName: 'Nana Baby',
-    participantUsername: 'nana_baby',
-    participantAvatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80',
-    participantBadge: 'star_verified',
-    lastMessage: 'Cool 💚',
-    lastMessageTime: '5 h',
-    unreadCount: 0
-  },
-  {
-    id: 'conv_lamine',
-    participantId: 'lamine_yamal',
-    participantName: 'Lamine Yamal',
-    participantUsername: 'lamine_yamal',
-    participantAvatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&auto=format&fit=crop&q=80',
-    participantBadge: 'star_verified',
-    lastMessage: 'Visca Barça ! ❤️💙',
-    lastMessageTime: '1 j',
+    lastMessage: 'Bienvenue sur FanLink AI ! Nous sommes ravis de vous compter parmi nous 💚',
+    lastMessageTime: 'À l\'instant',
     unreadCount: 0
   }
 ];
 
 export const INITIAL_MESSAGES: Record<string, Message[]> = {
-  conv_sarah: [
+  conv_fanlink_team: [
     {
-      id: 'm_s1',
-      conversationId: 'conv_sarah',
-      senderId: 'sarah_queen',
-      senderName: 'Sarah Queen',
-      senderAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
-      text: 'Coucou ! Merci pour ton soutien sur mon dernier post vidéo ✨',
-      createdAt: '2026-10-23T18:00:00.000Z'
-    },
-    {
-      id: 'm_s2',
-      conversationId: 'conv_sarah',
-      senderId: 'demo_fan_101',
-      senderName: 'Moi',
-      senderAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
-      text: 'Tu mérites tellement, le son est incroyable ! Hâte du prochain direct.',
-      createdAt: '2026-10-23T18:05:00.000Z'
-    },
-    {
-      id: 'm_s3',
-      conversationId: 'conv_sarah',
-      senderId: 'sarah_queen',
-      senderName: 'Sarah Queen',
-      senderAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
-      text: 'Merci beaucoup 💚',
-      createdAt: '2026-10-23T19:15:00.000Z'
-    },
-    {
-      id: 'm_s4',
-      conversationId: 'conv_sarah',
-      senderId: 'sarah_queen',
-      senderName: 'Sarah Queen',
-      senderAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
-      text: '🎧 Extrait vocal exclusif de mon nouveau refrain acoustique en avant-première mondiale.',
-      isPaid: true,
-      priceCoins: 30,
-      isUnlocked: false,
-      createdAt: '2026-10-23T20:00:00.000Z'
-    }
-  ],
-  conv_fally: [
-    {
-      id: 'm_f1',
-      conversationId: 'conv_fally',
-      senderId: 'fally_ipupa',
-      senderName: 'Fally Ipupa',
-      senderAvatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&auto=format&fit=crop&q=80',
-      text: 'Wapi team FanLink ? 🔥 Préparez-vous pour le concert !',
-      createdAt: '2026-10-23T18:30:00.000Z'
+      id: 'm_welcome_1',
+      conversationId: 'conv_fanlink_team',
+      senderId: 'fanlink_official',
+      senderName: 'Équipe FanLink AI',
+      senderAvatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=80',
+      text: 'Bienvenue sur FanLink AI ! 💚 Notre communauté réunit passionnés, fans et créateurs. Si vous avez la moindre question, écrivez-nous ici.',
+      createdAt: new Date().toISOString()
     }
   ]
 };
